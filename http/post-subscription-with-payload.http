@@ -1,0 +1,16 @@
+POST {{$dotenv SERVER}}/csp/healthshare/subscriptions/fhir/r4/Subscription
+Content-Type: application/fhir+json
+Accept: application/fhir+json
+Authorization: Basic {{$dotenv USER}}:{{$dotenv PASS}}
+
+{
+    "resourceType": "Subscription",
+    "status": "requested",
+    "reason": "Monitor specific patient registration",
+    "criteria": "Patient?identifier=https://hl7.org/fhir/sid/us-ssn|999-99-9990",
+    "channel": {
+        "type": "rest-hook",
+        "endpoint": "http://localhost:52773/fsub/mock/with-payload",
+        "payload": "application/fhir+xml"
+    }
+}

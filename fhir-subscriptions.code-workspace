@@ -1,0 +1,28 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"name": "outburn-subscriptions:SUBSCRIPTIONS",
+			"uri": "isfs://outburn-subscriptions:subscriptions/"
+		}
+	],
+	"settings": {
+		"intersystems.servers": {
+			"outburn-subscriptions": {
+				"webServer": {
+					"scheme": "http",
+					"host": "ec2-3-124-79-139.eu-central-1.compute.amazonaws.com",
+					"port": 52773
+				},
+				"username": "baranovd"
+			}
+		},
+		"objectscript.conn": {
+			"server": "outburn-subscriptions",
+			"ns": "SUBSCRIPTIONS",
+			"active": true
+		}
+	}
+}

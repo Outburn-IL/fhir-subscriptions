@@ -1,0 +1,1 @@
+java -jar synthea-with-dependencies.jar -p 10 --exporter.fhir.use_us_core_ig=false --generate.append_numbers_to_person_names=false --exporter.fhir.included_resources=Organization,Location,Practitioner,PractitionerRole,Patient,Encounter,AllergyIntolerance,Condition,DiagnosticReport,ImagingStudy,Immunization,MedicationAdministration,MedicationRequest,Observation,Procedure

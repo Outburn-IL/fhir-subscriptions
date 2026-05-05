@@ -39,6 +39,9 @@ Property subscriptionsBeingDeleted As %List [ Private, Transient ];
 
 Method OnBeforeRequest(pFHIRService As HS.FHIRServer.API.Service, pFHIRRequest As HS.FHIRServer.API.Data.Request, pTimeout As %Integer)
 {
+	do ##super(pFHIRService, pFHIRRequest, pTimeout)
+	Return
+
 	// initialize the properties
 	set ..currentFHIRService = pFHIRService
 	set ..currentSessionId = ""
@@ -67,6 +70,7 @@ Method OnBeforeRequest(pFHIRService As HS.FHIRServer.API.Service, pFHIRRequest A
 Method OnAfterRequest(pFHIRService As HS.FHIRServer.API.Service, pFHIRRequest As HS.FHIRServer.API.Data.Request, pFHIRResponse As HS.FHIRServer.API.Data.Response)
 {
 	do ##super(pFHIRService, pFHIRRequest, pFHIRResponse)
+	Return
 	
 	// skip subscription processing in case of error HTTP status
 	if (+pFHIRResponse.Status < 300)

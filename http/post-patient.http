@@ -1,0 +1,14 @@
+POST {{$dotenv SERVER}}/csp/healthshare/subscriptions/fhir/r4/Patient
+Content-Type: application/fhir+json
+Accept: application/fhir+json
+Authorization: Basic {{$dotenv USER}}:{{$dotenv PASS}}
+
+{
+    "resourceType": "Patient",
+    "name": [
+        {
+            "family": "Baranov",
+            "given": [ "Dmitry" ]
+        }
+    ]
+}

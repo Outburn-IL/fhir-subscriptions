@@ -1,0 +1,87 @@
+POST {{$dotenv SERVER}}/csp/healthshare/subscriptions/fhir/r4
+Content-Type: application/fhir+json
+Accept: application/fhir+json
+Authorization: Basic {{$dotenv USER}}:{{$dotenv PASS}}
+
+{
+    "resourceType": "Bundle",
+    "type": "transaction",
+    "entry": [
+        {
+            "resource": {
+                "resourceType": "Patient",
+                "identifier": [
+                    {
+                        "type": {
+                            "coding": [
+                                {
+                                    "system": "https://terminology.hl7.org/CodeSystem/v2-0203",
+                                    "code": "SS",
+                                    "display": "Social Security Number"
+                                }
+                            ],
+                            "text": "Social Security Number"
+                        },
+                        "system": "https://hl7.org/fhir/sid/us-ssn",
+                        "value": "999-99-9990"
+                    }
+                ],
+                "name": [
+                    {
+                        "use": "official",
+                        "family": "Smith",
+                        "given": [
+                            "Peter",
+                            "Paul"
+                        ]
+                    }
+                ],
+                "gender": "male",
+                "birthDate": "1947-10-26"
+            },
+            "request": {
+                "method": "POST",
+                "url": "Patient"
+            },
+            "fullUrl": "urn:uuid:cb12851a-2ebd-4c15-88a9-5bee0f308afc"
+        },
+        {
+            "resource": {
+                "resourceType": "Patient",
+                "identifier": [
+                    {
+                        "type": {
+                            "coding": [
+                                {
+                                    "system": "https://terminology.hl7.org/CodeSystem/v2-0203",
+                                    "code": "SS",
+                                    "display": "Social Security Number"
+                                }
+                            ],
+                            "text": "Social Security Number"
+                        },
+                        "system": "https://hl7.org/fhir/sid/us-ssn",
+                        "value": "999-99-9990"
+                    }
+                ],
+                "name": [
+                    {
+                        "use": "official",
+                        "family": "Smith",
+                        "given": [
+                            "P",
+                            "P"
+                        ]
+                    }
+                ],
+                "gender": "male",
+                "birthDate": "1947-10-26"
+            },
+            "request": {
+                "method": "POST",
+                "url": "Patient"
+            },
+            "fullUrl": "urn:uuid:cb12851a-2ebd-4c15-88a9-5bee0f308000"
+        }
+    ]
+}
