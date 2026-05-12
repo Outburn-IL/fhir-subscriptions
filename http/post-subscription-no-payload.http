@@ -10,7 +10,7 @@ Authorization: Basic {{$dotenv USER}}:{{$dotenv PASS}}
     "criteria": "Patient?identifier=https://hl7.org/fhir/sid/us-ssn|999-99-9990",
     "channel": {
         "type": "rest-hook",
-        "endpoint": "http://localhost:52773/fsub/mock/no-payload",
+        "endpoint": "http://ec2-3-124-79-139.eu-central-1.compute.amazonaws.com:52773/csp/healthshare/subscriptions/subscriber/no-payload",
         "header": [
             "Hi: there"
         ]
