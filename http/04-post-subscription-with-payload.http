@@ -11,6 +11,6 @@ Authorization: Basic {{$dotenv USER}}:{{$dotenv PASS}}
     "channel": {
         "type": "rest-hook",
         "endpoint": "http://ec2-3-124-79-139.eu-central-1.compute.amazonaws.com:52773/csp/healthshare/subscriptions/subscriber/with-payload",
-        "payload": "application/fhir+xml"
+        "payload": "application/fhir+json"
     }
 }

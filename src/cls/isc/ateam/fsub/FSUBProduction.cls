@@ -30,11 +30,11 @@ XData ProductionDefinition
   </Item>
   <Item Name="isc.ateam.fsub.FSUBRouterProcess" Category="" ClassName="isc.ateam.fsub.FSUBRouterProcess" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="true" Schedule="">
   </Item>
-  <Item Name="REST Hook: no-payload" Category="" ClassName="isc.ateam.fsub.bo.RESTHookOperation" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="true" Schedule="">
+  <Item Name="RestHookNoPayload" Category="" ClassName="isc.ateam.fsub.bo.RESTHookOperation" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="true" Schedule="">
     <Setting Target="Host" Name="ReplyCodeActions">E=RF</Setting>
     <Setting Target="Host" Name="TraceOperations">*FULL*</Setting>
   </Item>
-  <Item Name="REST Hook: with-payload" Category="" ClassName="isc.ateam.fsub.bo.RESTHookOperation" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="true" Schedule="">
+  <Item Name="RestHookWithPayload" Category="" ClassName="isc.ateam.fsub.bo.RESTHookOperation" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="true" Schedule="">
     <Setting Target="Host" Name="ReplyCodeActions">E=RF</Setting>
     <Setting Target="Host" Name="TraceOperations">*FULL*</Setting>
   </Item>
@@ -68,13 +68,6 @@ ClassMethod OnStart(pTimeStarted As %String) As %Status
 	}
 
 	quit sc
-}
-
-ClassMethod Test()
-{
-	#dim strategy As HS.FHIRServer.API.InteractionsStrategy = ##class(HS.FHIRServer.API.InteractionsStrategy).GetStrategyForEndpoint("/csp/healthshare/subscriptions/fhir/r4")
-	#dim interactions As isc.ateam.fsub.FSUBInteractions = strategy.NewInteractionsInstance()
-	zw interactions
 }
 
 /// Clean up

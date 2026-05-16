@@ -87,7 +87,10 @@ Method handleNotificationRequest(request As isc.ateam.fsub.msg.FSUBNotification)
 
 	Try
 	{
-		if (request.subscriptionStream.Size = 0) $$$ThrowError($$$GeneralError, "Empty subscriptionStream")
+		if (request.subscriptionStream.Size = 0)
+		{
+			$$$ThrowError($$$GeneralError, "Empty subscriptionStream")
+		}
 		set request.subscriptionJson = ##class(%DynamicObject).%FromJSON(request.subscriptionStream)
 		
 		// as of now, "REST Hook" is the only supported channel type 
@@ -107,22 +110,42 @@ Method handleNotificationRequest(request As isc.ateam.fsub.msg.FSUBNotification)
 		
 		// search for a HTTP Service Registry entry that has the full endpoint URL in its Alias field
 		// note that an entry can have multiple aliases, e.g. IP address or domain name based URLs
-		#dim serviceEntry As HS.Registry.Service.HTTP = ##class(HS.Registry.Service.Abstract).EndPointForNameType(endpoint, "HTTP")
-		if '$isObject(serviceEntry) $$$ThrowError($$$GeneralError, "Endpoint not found in the Service Registry: " _ endpoint)
+		// #dim serviceEntry As HS.Registry.Service.HTTP = ##class(HS.Registry.Service.Abstract).EndPointForNameType(endpoint, "HTTP")
+		#Dim serviceEntry as HS.Registry.Service.HTTP = ##class(HS.Registry.Service.HTTP).EndPointForURL(endpoint)
+		if '$isObject(serviceEntry) 
+		{
+			$$$ThrowError($$$GeneralError, "Endpoint not found in the Service Registry: " _ endpoint)
+		}
+		else
+		{
+			Do ..LogInfo("FSUBRouterProcess::handleNotificationRequest - request will be forwarded to HTTP service " _ serviceEntry.Name _ " (" _ serviceEntry.EndPoint _ ")")
+		}
 		
 		// search for a business operation with ServiceName=<name of the Service Registry entry we've just found>
 		#dim operation As Ens.Config.Item = ..findConfigItemBySettingValue("ServiceName", serviceEntry.Name, $$$eHostTypeOperation)
-		if '$isObject(operation) $$$ThrowError($$$GeneralError, "Cannot find Business Operation with ServiceName=""" _ serviceEntry.Name _ """")
+		if '$isObject(operation) 
+		{
+			Do ..LogInfo("FSUBRouterProcess::handleNotificationRequest - cannot find Business Operation with ServiceName='" _ serviceEntry.Name _ "'")
+			$$$ThrowError($$$GeneralError, "Cannot find Business Operation with ServiceName=""" _ serviceEntry.Name _ """")
+		}
+		else
+		{
+			Do ..LogInfo("FSUBRouterProcess::handleNotificationRequest - the request will be forwarded to Business Operation ='" _ operation.Name  _ "'")
+		}
 		
 		
 		if (payloadMimeType = "")
 		{
 			// REST request without payload, see https://www.hl7.org/fhir/r4/subscription.html#2.46.7.1
+			Do ..LogInfo("FSUBRouterProcess::handleNotificationRequest - the request will be doesn't have payload")
 			#dim noPayloadMessage As HS.FHIRServer.Interop.Request = ##class(HS.FHIRServer.Interop.Request).%New()
 			set noPayloadMessage.Request.RequestMethod = "POST"
 			
 			// add custom headers to the request's AdditionalInfo array
-			if (headerArray '= "") do ..addCustomHeadersToAdditionalInfo(headerArray, noPayloadMessage.Request)
+			if (headerArray '= "") 
+			{
+				do ..addCustomHeadersToAdditionalInfo(headerArray, noPayloadMessage.Request)
+			}
 			
 			// NB: send only ONE notification, even if there are multiple resources matching the current Subscription
 			// see https://www.hl7.org/fhir/r4/subscription.html#2.46.7.1
@@ -130,26 +153,18 @@ Method handleNotificationRequest(request As isc.ateam.fsub.msg.FSUBNotification)
 		}
 		else
 		{
+			Do ..LogInfo("FSUBRouterProcess::handleNotificationRequest - the request has some payload (" _ payloadMimeType _ ")")
 			#dim schema As HS.FHIRServer.Schema = "" // we will need schema when transforming JSON to XML
-			
-			// get the schema reference in case of XML payload
+
 			if (payloadMimeType = "application/fhir+xml")
 			{
-				#dim sc As %Status = $$$OK
-				#dim fhirEndpoint As %String = ##class(Ens.Director).GetCurrProductionSettingValue(..#fhirEndpointSETTING, .sc)
-				$$$ThrowOnError(sc)
-
-				// get Interactions Strategy
-				#dim strategy As HS.FHIRServer.API.InteractionsStrategy = ##class(HS.FHIRServer.API.InteractionsStrategy).GetStrategyForEndpoint(fhirEndpoint)
-				
-				set schema = strategy.schema
+				Throw ##class(%Exception.General).%New(payloadMimeType _ " - not supported. Check subscription settings.")
 			}
 			
 			// NB: the following CreateInstance() method expects the current production to be registered in the Installer Wizard for the current namespace (see HS.Util.Installer.ConfigItem class)
 			//     hence it will throw an error if one changes to a different production after initial namespace setup
-			#dim clientObj As HS.FHIRServer.RestClient.Interop = ##class(HS.FHIRServer.RestClient.Interop).CreateInstance(serviceEntry.Name,,,,,, operation.Name, $this)
-			do clientObj.SetRequestFormat($case(payloadMimeType, "application/fhir+xml":"XML", :"JSON"))
-			do clientObj.SetResponseFormat("JSON")
+
+			Do ..LogInfo("FSUBRouterProcess::handleNotificationRequest - ready to create RestClient for BO ('" _ operation.Name _ "')")
 			
 			// iterate over the matching resources
 			for i = 1:1:request.matchingResources.Count()
@@ -158,21 +173,28 @@ Method handleNotificationRequest(request As isc.ateam.fsub.msg.FSUBNotification)
 				#dim resId As %String = request.matchingResources.GetAt(i).resourceId
 				#dim payload As %Stream.Object = request.matchingResources.GetAt(i).resourceStream
 				
-				if (payloadMimeType = "application/fhir+xml")
-				{
-					// transform resource to XML
-					#dim xmlPayload As %Stream.Object = ""
-					do ##class(HS.FHIRServer.Util.JSONToXML).JSONToXML(payload, .xmlPayload, schema)
-					set payload = xmlPayload
-				}
-				
-				#dim message As HS.FHIRServer.Interop.Request = clientObj.MakeRequest("PUT", payload,	"/" _ resType _ "/" _ resId, "")
+				// #dim message As HS.FHIRServer.Interop.Request = clientObj.MakeRequest("PUT", payload,	"/" _ resType _ "/" _ resId, "")
+				#Dim message as HS.FHIRServer.Interop.Request = ##class(HS.FHIRServer.Interop.Request).%New()
+				#Dim innerRequest as HS.FHIRServer.API.Data.Request = ##class(HS.FHIRServer.API.Data.Request).%New()
+				Set innerRequest.RequestMethod = "PUT"
+				Set innerRequest.RequestPath = "/" _ resType _ "/" _ resId
+				Set innerRequest.RequestFormatCode = "JSON"
+				Set message.Request = innerRequest
+				#Dim stream as HS.SDA3.QuickStream
+				Set stream = ##class(HS.SDA3.QuickStream).%New()
+				$$$ThrowOnError(payload.Rewind())
+				$$$ThrowOnError(stream.CopyFrom(payload))
+				$$$ThrowOnError(stream.Flush())
+				$$$ThrowOnError(stream.%Save())
+				Set message.QuickStreamId = stream.%Id()
 				do message.Request.AdditionalInfo.RemoveAt("ServiceName")  // we don't actually need ServiceName to be passed in requests
 				
 				// add custom headers to the request's AdditionalInfo array
 				if (headerArray '= "") do ..addCustomHeadersToAdditionalInfo(headerArray, message.Request)
 				
 				// send *async* request to the operation (async requests are not supported by HS.FHIRServer.RestClient.Interop as of 2022.1, so calling SendRequestAsync "manually")
+
+				Do ..LogInfo("FSUBRouterProcess::handleNotificationRequest - ready to forward a request with payload to '" _ operation.Name _ "'")
 				$$$ThrowOnError(..SendRequestAsync(operation.Name, message,,, "FSUB Notification With Payload"))
 
 			} // for
@@ -211,33 +233,42 @@ ClassMethod findConfigItemBySettingValue(settingName As %String, settingValue As
 	for i = 1:1:prod.Items.Count()
 	{
 		#dim item As Ens.Config.Item = prod.Items.GetAt(i)
-
-		if '$isObject(item)
-				|| ((businessType '= "") && (item.BusinessType() '= businessType))
-				|| (enabledOnly && 'item.Enabled)
+		#Dim setting as Ens.Config.Setting
+		for j = 1:1:item.Settings.Count()
 		{
-			continue
-		}
-		
-		// loop through settings
-		do item.PopulateModifiedSettings()
-		#dim ind As %String = ""
-		for
-		{
-			#dim setting = item.ModifiedSettings.GetNext(.ind)
-			if (ind = "") quit
-
-			if (setting.Name = settingName)
+			Set setting = item.Settings.GetAt(j)
+			If ((setting.Name = settingName) && (setting.Value = settingValue))
 			{
-				if ($zstrip(setting.Value, "<>W") = $zstrip(settingValue, "<>W")) set result = item
-				quit
+				return item
 			}
-		} // for
+		}
 
-		if $isObject(result) quit
+	#; 	if '$isObject(item)
+	#; 			|| ((businessType '= "") && (item.BusinessType() '= businessType))
+	#; 			|| (enabledOnly && 'item.Enabled)
+	#; 	{
+	#; 		continue
+	#; 	}
+		
+	#; 	// loop through settings
+	#; 	do item.PopulateModifiedSettings()
+	#; 	#dim ind As %String = ""
+	#; 	for
+	#; 	{
+	#; 		#dim setting = item.ModifiedSettings.GetNext(.ind)
+	#; 		if (ind = "") quit
+
+	#; 		if (setting.Name = settingName)
+	#; 		{
+	#; 			if ($zstrip(setting.Value, "<>W") = $zstrip(settingValue, "<>W")) set result = item
+	#; 			quit
+	#; 		}
+	#; 	} // for
+
+	#; 	if $isObject(result) quit
 	} // for
-	
-	quit result
+	//quit result
+	Return ""
 }
 
 ClassMethod getCurrentProduction() As Ens.Config.Production

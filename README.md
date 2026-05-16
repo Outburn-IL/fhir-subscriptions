@@ -56,7 +56,14 @@ OUTBURN:
 3. Added simple logging to `select * from isc_ateam_fsub.FSUBLog order by id desc`
 4. Added some python scripts for convenience
 5. Current implementation supports only relative URLs??
+6. Handing `application/fhir+xml` is disabled and was commented out
+7. Forwarded payload is recreated manually, without using Interop FHIR client
 
 Notes:
 1. During development, use `do ##class(HS.FHIRServer.ConsoleSetup).Setup()` and set debug mode to 7 to prevent caching of HTTP request handler (FSUBInteractions class)
 2. Be careful when installing an instance of FHIR server. You should specify `isc.ateam.fsub.FSUBInteractionsStrategy` for the subscriptions to work propely.
+
+TODO:
+1. Rewite the subscription handler as a mixing
+2. Improve logging
+3. Simplify payload forwarding. Generally we should not recreate a FHIR message, and a resource can be forwarded as-is (as a JSON stream)
