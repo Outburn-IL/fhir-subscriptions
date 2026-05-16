@@ -3,4 +3,4 @@ Content-Type: application/fhir+json
 Accept: application/fhir+json
 Authorization: Basic {{$dotenv USER}}:{{$dotenv PASS}}
 
-< ../synthea/output/fhir/Archie_Carroll_b05ed0fb-7416-dee9-9245-9c9d3802ce92.json
+< ../synthea/output/fhir/Brendan_McCullough_6e53e49c-328c-541e-ab99-e2ba7b988a8a.json

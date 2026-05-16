@@ -1,3 +1,3 @@
-GET {{$dotenv SERVER}}/Patient
+GET {{$dotenv SERVER}}/Patient?name=Carroll
 Accept: application/fhir+json
 Authorization: Basic {{$dotenv USER}}:{{$dotenv PASS}}

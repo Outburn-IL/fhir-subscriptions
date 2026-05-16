@@ -1,6 +1,8 @@
 Class isc.ateam.fsub.FSUBLog Extends %Persistent
 {
-Property Message as %String;
+Property Message as %String(MAXLEN="");
+
+
 Storage Default
 {
 <Data name="FSUBLogDefaultData">

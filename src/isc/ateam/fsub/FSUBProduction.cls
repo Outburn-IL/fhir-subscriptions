@@ -17,30 +17,6 @@ Property SingleSessionPerFHIRRequest As %Boolean [ InitialExpression = {$$$YES} 
 
 Parameter SETTINGS = "InboundFHIRSourceService:Basic:selector?context={Ens.ContextSearch/ProductionItems?targets=0&productionName=@productionId},InboundFHIRTarget:Basic,FHIREndpoint:Basic,SingleSessionPerFHIRRequest:Basic";
 
-XData ProductionDefinition
-{
-<Production Name="isc.ateam.fsub.FSUBProduction" TestingEnabled="true" LogGeneralTraceEvents="true">
-  <Description></Description>
-  <ActorPoolSize>2</ActorPoolSize>
-  <Setting Target="Adapter" Name="InboundFHIRSourceService">FHIR</Setting>
-  <Setting Target="Adapter" Name="InboundFHIRTarget">isc.ateam.fsub.FSUBRouterProcess</Setting>
-  <Item Name="FHIR" Category="" ClassName="EnsLib.Testing.Service" PoolSize="0" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
-  </Item>
-  <Item Name="HS.Util.Trace.Operations" Category="" ClassName="HS.Util.Trace.Operations" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
-  </Item>
-  <Item Name="isc.ateam.fsub.FSUBRouterProcess" Category="" ClassName="isc.ateam.fsub.FSUBRouterProcess" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="true" Schedule="">
-  </Item>
-  <Item Name="REST Hook: no-payload" Category="" ClassName="isc.ateam.fsub.bo.RESTHookOperation" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="true" Schedule="">
-    <Setting Target="Host" Name="ReplyCodeActions">E=RF</Setting>
-    <Setting Target="Host" Name="TraceOperations">*FULL*</Setting>
-  </Item>
-  <Item Name="REST Hook: with-payload" Category="" ClassName="isc.ateam.fsub.bo.RESTHookOperation" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="true" Schedule="">
-    <Setting Target="Host" Name="ReplyCodeActions">E=RF</Setting>
-    <Setting Target="Host" Name="TraceOperations">*FULL*</Setting>
-  </Item>
-</Production>
-}
-
 /// Intialize Subscription cache
 ClassMethod OnStart(pTimeStarted As %String) As %Status
 {
@@ -49,17 +25,12 @@ ClassMethod OnStart(pTimeStarted As %String) As %Status
 	{
 		#dim fhirEndpoint As %String = ##class(Ens.Director).GetCurrProductionSettingValue("FHIREndpoint", .sc)
 		if $$$ISERR(sc) quit
-
-		if fhirEndpoint = ""
-		{
-			Set fhirEndpoint = "/csp/healthshare/subscriptions/fhir/r4"
-		}
 	
 		#dim strategy As HS.FHIRServer.API.InteractionsStrategy = ##class(HS.FHIRServer.API.InteractionsStrategy).GetStrategyForEndpoint(fhirEndpoint)
 		#dim interactions As isc.ateam.fsub.FSUBInteractions = strategy.NewInteractionsInstance()
-		#dim globalName As %String = interactions.subscriptionsGlobal		
+		#dim globalName As %String = interactions.subscriptionsGlobal
+		
 		do ##class(isc.ateam.fsub.FSUBInteractions).initializeSubscriptionCache(globalName, interactions, strategy)
-
 	}
 	catch ex
 	{
@@ -68,13 +39,6 @@ ClassMethod OnStart(pTimeStarted As %String) As %Status
 	}
 
 	quit sc
-}
-
-ClassMethod Test()
-{
-	#dim strategy As HS.FHIRServer.API.InteractionsStrategy = ##class(HS.FHIRServer.API.InteractionsStrategy).GetStrategyForEndpoint("/csp/healthshare/subscriptions/fhir/r4")
-	#dim interactions As isc.ateam.fsub.FSUBInteractions = strategy.NewInteractionsInstance()
-	zw interactions
 }
 
 /// Clean up
@@ -100,5 +64,29 @@ ClassMethod OnStop(pTimeStarted As %String, pForced As %Boolean)
 	if $$$ISERR(sc) $$$LOGSTATUS(sc)
 }
 
+XData ProductionDefinition
+{
+<Production Name="isc.ateam.fsub.FSUBProduction" TestingEnabled="true" LogGeneralTraceEvents="true">
+  <Description></Description>
+  <ActorPoolSize>2</ActorPoolSize>
+  <Setting Target="Adapter" Name="InboundFHIRSourceService">FHIR</Setting>
+  <Setting Target="Adapter" Name="InboundFHIRTarget">isc.ateam.fsub.FSUBRouterProcess</Setting>
+  <Setting Target="Adapter" Name="FHIREndpoint">/csp/healthshare/subscriptions/fhir/r4</Setting>
+  <Item Name="FHIR" Category="" ClassName="EnsLib.Testing.Service" PoolSize="0" Enabled="false" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
+  </Item>
+  <Item Name="HS.Util.Trace.Operations" Category="" ClassName="HS.Util.Trace.Operations" PoolSize="1" Enabled="false" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
+  </Item>
+  <Item Name="isc.ateam.fsub.FSUBRouterProcess" Category="" ClassName="isc.ateam.fsub.FSUBRouterProcess" PoolSize="1" Enabled="false" Foreground="false" Comment="" LogTraceEvents="true" Schedule="">
+  </Item>
+  <Item Name="REST Hook: no-payload" Category="" ClassName="isc.ateam.fsub.bo.RESTHookOperation" PoolSize="1" Enabled="false" Foreground="false" Comment="" LogTraceEvents="true" Schedule="">
+    <Setting Target="Host" Name="ReplyCodeActions">E=RF</Setting>
+    <Setting Target="Host" Name="TraceOperations">*FULL*</Setting>
+  </Item>
+  <Item Name="REST Hook: with-payload" Category="" ClassName="isc.ateam.fsub.bo.RESTHookOperation" PoolSize="1" Enabled="false" Foreground="false" Comment="" LogTraceEvents="true" Schedule="">
+    <Setting Target="Host" Name="ReplyCodeActions">E=RF</Setting>
+    <Setting Target="Host" Name="TraceOperations">*FULL*</Setting>
+  </Item>
+</Production>
 }
 
+}

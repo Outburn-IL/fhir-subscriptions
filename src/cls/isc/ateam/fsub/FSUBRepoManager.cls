@@ -1,4 +1,4 @@
-Class isc.ateam.fsub.FSUBRepoManager Extends HS.FHIRServer.Storage.Json.RepoManager
+Class isc.ateam.fsub.FSUBRepoManager Extends HS.FHIRServer.Storage.JsonAdvSQL.RepoManager
 {
 
 Parameter StrategyClass = "isc.ateam.fsub.FSUBInteractionsStrategy";

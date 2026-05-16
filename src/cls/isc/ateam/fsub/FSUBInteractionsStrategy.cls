@@ -1,4 +1,4 @@
-Class isc.ateam.fsub.FSUBInteractionsStrategy Extends HS.FHIRServer.Storage.Json.InteractionsStrategy
+Class isc.ateam.fsub.FSUBInteractionsStrategy Extends HS.FHIRServer.Storage.JsonAdvSQL.InteractionsStrategy
 {
 
 Parameter StrategyKey = "isc.ateam.fsub.FSUBInteractionsStrategy";

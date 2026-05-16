@@ -1,7 +1,7 @@
 Include Ensemble
 
 /// This class adds HTTP request logging
-Class isc.ateam.fsub.bo.RestClientHTTP Extends HS.FHIRServer.RestClient.HTTP
+Class isc.ateam.fsub.bo.RestClientHTTP Extends (HS.FHIRServer.RestClient.HTTP, isc.ateam.fsub.IFSUBLoggable)
 {
 
 Property parentHost As isc.ateam.fsub.bo.RESTHookOperation [ Private ];
@@ -14,23 +14,31 @@ Method setParentHost(parentHost As isc.ateam.fsub.bo.RESTHookOperation)
 /// Overridden in order to log HTTP requests via $$$HSTRACE
 Method InvokeRequest(pRequest As %RegisteredObject, pRequestMethod As %String, pRequestPath As %String, pQueryString As %String) As %Net.HttpResponse
 {
-	#dim sc As %Status = $$$OK
-	#dim return As %Net.HttpResponse = ""
-	try
+	Try
 	{
-		set return = ##super(pRequest, pRequestMethod, pRequestPath, pQueryString)
+		#dim sc As %Status = $$$OK
+		#dim rv As %Net.HttpResponse = ""
+		try
+		{
+			set rv = ##super(pRequest, pRequestMethod, pRequestPath, pQueryString)
+		}
+		catch ex
+		{
+			set sc = ex.AsStatus()
+		}
+		
+		// log before throwing
+		if $isObject(..parentHost) do ..parentHost.hsTraceHttpRequest("HTTP request info", "##class("_$$$CurrentClass_")."_$$$CurrentMethod_"()", ..%HttpRequest, pRequestMethod, sc)
+		
+		$$$ThrowOnError(sc)
+		
+		return rv
 	}
-	catch ex
+	Catch (ex)
 	{
-		set sc = ex.AsStatus()
+		Do ..LogInfo("RestClientHTTP::InvokeRequest - error " _ ex.DisplayString())
+		Throw ex
 	}
-	
-	// log before throwing
-	if $isObject(..parentHost) do ..parentHost.hsTraceHttpRequest("HTTP request info", "##class("_$$$CurrentClass_")."_$$$CurrentMethod_"()", ..%HttpRequest, pRequestMethod, sc)
-	
-	$$$ThrowOnError(sc)
-	
-	quit return
 }
 
 }

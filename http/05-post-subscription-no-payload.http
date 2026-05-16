@@ -7,7 +7,7 @@ Authorization: Basic {{$dotenv USER}}:{{$dotenv PASS}}
     "resourceType": "Subscription",
     "status": "requested",
     "reason": "Monitor specific patient registration",
-    "criteria": "Patient?active=true",
+    "criteria": "Patient?name=Carroll",
     "channel": {
         "type": "rest-hook",
         "endpoint": "http://ec2-3-124-79-139.eu-central-1.compute.amazonaws.com:52773/csp/healthshare/subscriptions/subscriber/no-payload",

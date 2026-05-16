@@ -46,3 +46,17 @@ REST Hook notifications are broadcast through business operation components of c
 For each endpoint URL that can be a notification target, there should be a pre-configured [HTTP Service Registry](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXREG_ch_service_registry#HXREG_service_registry_settings_http) entry and a corresponding operation component in the interoperability production. So that each operation queues notifications destined for a specific endpoint.
 
 Once [isc.ateam.fsub.FSUBRouterProcess](../main/src/cls/isc/ateam/fsub/FSUBRouterProcess.cls) receives a message containing a Subscription and a set of matching resources, the process extracts target endpoint URL from ```channel.endpoint``` element of the Subscription, and looks in the HTTP Service Registry for an entry whose ```Aliases``` array contains the URL. If a Service Registry entry is found, the process tries to find the business operation component associated with the entry through ```ServiceName``` setting. Finally it routes notification message(s) to the operation.
+
+
+
+OUTBURN:
+
+1. Performed migration to JsonAdvSQL
+2. [BUG] IRIS doesn't recognize the `active` parameter??
+3. Added simple logging to `select * from isc_ateam_fsub.FSUBLog order by id desc`
+4. Added some python scripts for convenience
+5. Current implementation supports only relative URLs??
+
+Notes:
+1. During development, use `do ##class(HS.FHIRServer.ConsoleSetup).Setup()` and set debug mode to 7 to prevent caching of HTTP request handler (FSUBInteractions class)
+2. Be careful when installing an instance of FHIR server. You should specify `isc.ateam.fsub.FSUBInteractionsStrategy` for the subscriptions to work propely.
