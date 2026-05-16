@@ -66,4 +66,6 @@ Notes:
 TODO:
 1. Rewite the subscription handler as a mixing
 2. Improve logging
-3. Simplify payload forwarding. Generally we should not recreate a FHIR message, and a resource can be forwarded as-is (as a JSON stream)
+3. Simplify payload forwarding. Generally we should not recreate a FHIR message so matched resources can be forwarded as-is (as a JSON stream)
+4. Get rid of in-memory global/cache. Reading subscription resources every time directly from the database will not heavily affect performance 
+   but makes code more readable.
