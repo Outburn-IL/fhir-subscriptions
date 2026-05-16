@@ -1,0 +1,6 @@
+POST {{$dotenv SERVER}}/
+Content-Type: application/fhir+json
+Accept: application/fhir+json
+Authorization: Basic {{$dotenv USER}}:{{$dotenv PASS}}
+
+< ../synthea/output/fhir/Archie_Carroll_b05ed0fb-7416-dee9-9245-9c9d3802ce92.json

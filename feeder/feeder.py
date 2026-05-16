@@ -3,6 +3,21 @@ FHIR Feeder - reads JSON files from a directory and sends them to a FHIR server.
 
 Configuration is loaded from a .env file in the same directory as this script.
 See .env.example for available variables.
+
+Usage:
+
+Send all files:
+    python feeder.py
+
+Feed Patient и Encounter
+    python feeder.py --types Patient Encounter
+
+Feed bundles
+    python feeder.py --types Bundle
+
+Combine all above
+    python feeder.py --types Patient --workers 4 --dir ../synthea/output/fhir
+
 """
 
 import json
@@ -99,7 +114,12 @@ def classify_response(status_code: int) -> str:
     return f"HTTP {status_code}"
 
 
-def send_file(file_path: Path, base_url: str, session: requests.Session) -> Result:
+def send_file(
+    file_path: Path,
+    base_url: str,
+    session: requests.Session,
+    allowed_types: Optional[set[str]] = None,
+) -> Result:
     fname = file_path.name
     try:
         raw = file_path.read_text(encoding="utf-8")
@@ -112,6 +132,9 @@ def send_file(file_path: Path, base_url: str, session: requests.Session) -> Resu
     if not resource_type:
         log.error("[SKIP] %s — missing resourceType", fname)
         return Result(file=fname, success=False, error="Missing resourceType")
+
+    if allowed_types and resource_type not in allowed_types:
+        return Result(file=fname, success=False, error=f"Filtered out ({resource_type})")
 
     if resource_type == "Bundle":
         method = "POST"
@@ -194,7 +217,16 @@ def main() -> None:
         default=MAX_WORKERS,
         help=f"Concurrent threads (default: {MAX_WORKERS})",
     )
+    parser.add_argument(
+        "--types",
+        nargs="+",
+        default=None,
+        metavar="ResourceType",
+        help="Only send files whose resourceType matches (e.g. --types Patient Bundle). Default: all types.",
+    )
     args = parser.parse_args()
+
+    allowed_types: Optional[set[str]] = set(args.types) if args.types else None
 
     input_path = Path(args.dir).resolve()
     if not input_path.is_dir():
@@ -211,23 +243,25 @@ def main() -> None:
     log.info("  Source  : %s", input_path)
     log.info("  Files   : %d", len(files))
     log.info("  Threads : %d", args.workers)
+    log.info("  Types   : %s", ", ".join(sorted(allowed_types)) if allowed_types else "all")
 
     session = build_session()
     results: list[Result] = []
 
     with ThreadPoolExecutor(max_workers=args.workers, thread_name_prefix="fhir") as pool:
         futures = {
-            pool.submit(send_file, f, args.url, session): f for f in files
+            pool.submit(send_file, f, args.url, session, allowed_types): f for f in files
         }
         for future in as_completed(futures):
             results.append(future.result())
 
-    # ── Summary ──────────────────────────────────────────────────────────────
-    total = len(results)
+    # Summary
+    filtered = [r for r in results if r.error and r.error.startswith("Filtered out")]
+    total = len(results) - len(filtered)
     ok = sum(1 for r in results if r.success)
     errors = total - ok
 
-    skipped = [r for r in results if r.status_code is None]
+    skipped = [r for r in results if r.status_code is None and not (r.error and r.error.startswith("Filtered out"))]
     server_errors = [r for r in results if r.status_code and not r.success]
 
     print("\n" + "═" * 60)

@@ -1,7 +1,7 @@
 /// This operation sends "REST Hook" notifications to subscribers - see https://www.hl7.org/fhir/r4/subscription.html#2.46.7.1
 /// It takes a FHIRServer Interop request and invokes an HTTP request.
 /// Pieces of code have been borrowed from HS.FHIRServer.Interop.HTTPOperation (I4H 2022.2).
-Class isc.ateam.fsub.bo.RESTHookOperation Extends HS.FHIRServer.Interop.HTTPOperation
+Class isc.ateam.fsub.bo.RESTHookOperation Extends (HS.FHIRServer.Interop.HTTPOperation, isc.ateam.fsub.IFSUBLoggable)
 {
 
 /// Enable this setting to have the operation throw an exception when it receives 5xx HTTP status code.
@@ -18,6 +18,8 @@ Method DispatchRequest(pInteropRequest As HS.FHIRServer.Interop.Request, Output 
 {
 	#dim httpClient As isc.ateam.fsub.bo.RestClientHTTP = ""
 	#dim clientResponse As HS.FHIRServer.API.Data.RestClient.Response = ""
+
+	Do ..LogInfo("Request accepted")
 	
 	#dim sc As %Status = $$$OK
 	try

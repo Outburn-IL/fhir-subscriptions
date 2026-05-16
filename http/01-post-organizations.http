@@ -1,0 +1,6 @@
+POST {{$dotenv SERVER}}/
+Content-Type: application/fhir+json
+Accept: application/fhir+json
+Authorization: Basic {{$dotenv USER}}:{{$dotenv PASS}}
+
+< ../synthea/output/fhir/hospitalInformation1778954526648.json

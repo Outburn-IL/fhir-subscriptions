@@ -1,6 +1,6 @@
 Include Ensemble
 
-Class isc.ateam.fsub.FSUBInteractions Extends HS.FHIRServer.Storage.Json.Interactions
+Class isc.ateam.fsub.FSUBInteractions Extends (HS.FHIRServer.Storage.Json.Interactions, isc.ateam.fsub.IFSUBLoggable)
 {
 
 /* NB: After modifying this class, make sure to reset the endpoint using this command:
@@ -39,6 +39,7 @@ Property subscriptionsBeingDeleted As %List [ Private, Transient ];
 
 Method OnBeforeRequest(pFHIRService As HS.FHIRServer.API.Service, pFHIRRequest As HS.FHIRServer.API.Data.Request, pTimeout As %Integer)
 {
+	do ..LogInfo("OnBeforeRequest")
 	do ##super(pFHIRService, pFHIRRequest, pTimeout)
 	Return
 

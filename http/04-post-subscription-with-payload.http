@@ -1,0 +1,16 @@
+POST {{$dotenv SERVER}}/Subscription
+Content-Type: application/fhir+json
+Accept: application/fhir+json
+Authorization: Basic {{$dotenv USER}}:{{$dotenv PASS}}
+
+{
+    "resourceType": "Subscription",
+    "status": "requested",
+    "reason": "Monitor specific patient registration",
+    "criteria": "Patient?active=true",
+    "channel": {
+        "type": "rest-hook",
+        "endpoint": "http://ec2-3-124-79-139.eu-central-1.compute.amazonaws.com:52773/csp/healthshare/subscriptions/subscriber/with-payload",
+        "payload": "application/fhir+xml"
+    }
+}

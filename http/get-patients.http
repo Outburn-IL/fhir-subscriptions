@@ -1,3 +1,3 @@
-GET {{$dotenv SERVER}}/csp/healthshare/subscriptions/fhir/r4/Patient
+GET {{$dotenv SERVER}}/Patient
 Accept: application/fhir+json
 Authorization: Basic {{$dotenv USER}}:{{$dotenv PASS}}
